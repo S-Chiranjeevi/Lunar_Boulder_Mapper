@@ -1,0 +1,4 @@
+# CPU-only PyTorch wheels keep the Render image free of CUDA packages.
+# Install this after requirements-backend.txt and before Ultralytics.
+torch
+torchvision

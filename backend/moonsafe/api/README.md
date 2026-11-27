@@ -41,3 +41,10 @@ and pluggable detector and risk-grid modules.
   `unsupported_imagery` (`422`), `missing_model_weights` (`503`),
   `unavailable_georeferencing` (`422` when `require_georeferencing=true`), and
   `risk_module_unavailable` (`503`).
+- **Bundled prototype detector**: The backend Docker image includes a CPU-only
+  PyTorch/Ultralytics runtime, the `moonsafe.detect` adapter, and the
+  experimental checkpoint at `/models/moonsafe-yolov8n-lunar-10pct-5ep.pt`.
+  `MOONSAFE_WEIGHTS_PATH` can point to a replacement checkpoint. This model's
+  held-out results are weak (mAP50 0.1915, mAP50-95 0.0539); it is wired for
+  prototype screening only, not validated safety guidance. See
+  `models/README.md` for source and evaluation details.
