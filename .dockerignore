@@ -1,0 +1,9 @@
+.git
+.moonsafe_data
+__pycache__
+*.pyc
+node_modules
+frontend/dist
+runs
+models/*.pt
+!.env.example
