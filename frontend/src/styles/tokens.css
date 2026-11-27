@@ -1,24 +1,24 @@
 :root {
-  --ms-bg-canvas: #0b0e14;
-  --ms-bg-surface: #121722;
-  --ms-bg-elevated: #181f2e;
-  --ms-bg-subtle: #1f293d;
+  --ms-bg-canvas: #07090e;
+  --ms-bg-surface: rgba(15, 23, 42, 0.78);
+  --ms-bg-elevated: rgba(17, 25, 45, 0.9);
+  --ms-bg-subtle: rgba(30, 41, 59, 0.72);
 
-  --ms-border-subtle: rgba(148, 163, 184, 0.16);
-  --ms-border-strong: rgba(148, 163, 184, 0.32);
+  --ms-border-subtle: rgba(56, 189, 248, 0.18);
+  --ms-border-strong: rgba(56, 189, 248, 0.38);
 
   --ms-text-primary: #f1f5f9;
   --ms-text-secondary: #94a3b8;
   --ms-text-muted: #64748b;
 
   --ms-accent: #38bdf8;
-  --ms-accent-soft: rgba(56, 189, 248, 0.14);
+  --ms-accent-soft: rgba(56, 189, 248, 0.16);
 
   --ms-safe: #10b981;
   --ms-caution: #f59e0b;
   --ms-unsafe: #ef4444;
-  --ms-uncertain: #a855f7;
+  --ms-uncertain: #8b5cf6;
 
-  --ms-font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --ms-font-sans: "Space Grotesk", "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --ms-font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }

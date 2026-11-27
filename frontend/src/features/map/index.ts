@@ -6,4 +6,5 @@ export { TerrainContext3D } from './TerrainContext3D';
 export { ThresholdControlsPanel } from './ThresholdControlsPanel';
 export { updateJobThresholds } from './api';
 export * from './coordinates';
+export * from './sampleTiles';
 export * from './types';
