@@ -1,9 +1,9 @@
 {
-  "image_id": "nac_example_001",
-  "source_image_id": "M1234567890L",
-  "gsd_x_m_per_px": 0.5,
-  "gsd_y_m_per_px": 0.5,
-  "coverage": "valid",
+  "image_id": "local-nac-image-id",
+  "source_image_id": "replace-with-source-product-id",
+  "gsd_x_m_per_px": null,
+  "gsd_y_m_per_px": null,
+  "coverage": "missing",
   "coordinate_frame": "image_px",
   "image_to_lunar": null
 }
