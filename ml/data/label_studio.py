@@ -109,8 +109,13 @@ def load_label_studio_export(
         source_obs_id = str(
             data.get("source_observation_id")
             or data.get("source_image_id")
-            or image_id
+            or ""
         )
+        if not source_obs_id.strip():
+            raise ValueError(
+                f"Task {task.get('id', index)} is missing source_observation_id/source_image_id; "
+                "provide the source observation to prevent tile leakage across splits."
+            )
         site_id = str(data["site_id"]) if data.get("site_id") else None
 
         task_type_raw = str(data.get("task_type") or "standalone_boulder")
@@ -119,7 +124,7 @@ def load_label_studio_export(
             if task_type_raw in {"standalone_boulder", "rockfall", "other"}
             else "other"
         )
-        reviewed = bool(data.get("reviewed_for_standalone_boulder", True))
+        reviewed = bool(data.get("reviewed_for_standalone_boulder", False))
 
         boxes: list[CuratedBox] = []
         for item in results:

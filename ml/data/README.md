@@ -82,7 +82,7 @@ Label Studio task `data` fields should preserve the original tile and curation d
   "coordinate_units": "image_px",
   "license": "license identifier or terms",
   "task_type": "standalone_boulder",
-  "reviewed_for_standalone_boulder": true,
+  "reviewed_for_standalone_boulder": false,
   "provenance_notes": "curation batch or reviewer reference"
 }
 ```
