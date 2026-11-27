@@ -8,6 +8,12 @@ import type {
   JobStatusResponse,
 } from '../types/contracts';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, '') ?? '';
+
+function apiUrl(path: string): string {
+  return `${API_BASE_URL}${path}`;
+}
+
 export class ApiError extends Error {
   readonly status: number;
 
@@ -53,11 +59,11 @@ async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 export function getImagePreviewUrl(imageId: string): string {
-  return `/api/v1/images/${encodeURIComponent(imageId)}/preview`;
+  return apiUrl(`/api/v1/images/${encodeURIComponent(imageId)}/preview`);
 }
 
 export async function listImages(signal?: AbortSignal): Promise<ImageMetadata[]> {
-  const payload = await requestJson<ImageListResponse | ImageMetadata[]>('/api/v1/images', {
+  const payload = await requestJson<ImageListResponse | ImageMetadata[]>(apiUrl('/api/v1/images'), {
     method: 'GET',
     signal,
   });
@@ -89,7 +95,7 @@ export async function uploadImage(
     form.append('coverage', payload.coverage);
   }
 
-  return requestJson<ImageUploadResponse>('/api/v1/images', {
+  return requestJson<ImageUploadResponse>(apiUrl('/api/v1/images'), {
     method: 'POST',
     body: form,
     signal,
@@ -100,7 +106,7 @@ export async function startProcessingJob(
   payload: JobCreateRequest,
   signal?: AbortSignal,
 ): Promise<JobCreateResponse> {
-  return requestJson<JobCreateResponse>('/api/v1/jobs', {
+  return requestJson<JobCreateResponse>(apiUrl('/api/v1/jobs'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -112,7 +118,7 @@ export async function getJobStatus(
   jobId: string,
   signal?: AbortSignal,
 ): Promise<JobStatusResponse> {
-  return requestJson<JobStatusResponse>(`/api/v1/jobs/${encodeURIComponent(jobId)}`, {
+  return requestJson<JobStatusResponse>(apiUrl(`/api/v1/jobs/${encodeURIComponent(jobId)}`), {
     method: 'GET',
     signal,
   });
@@ -122,7 +128,7 @@ export async function getJobResults(
   jobId: string,
   signal?: AbortSignal,
 ): Promise<JobResultsResponse> {
-  return requestJson<JobResultsResponse>(`/api/v1/jobs/${encodeURIComponent(jobId)}/results`, {
+  return requestJson<JobResultsResponse>(apiUrl(`/api/v1/jobs/${encodeURIComponent(jobId)}/results`), {
     method: 'GET',
     signal,
   });
