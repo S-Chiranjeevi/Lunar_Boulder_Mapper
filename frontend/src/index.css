@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Leaflet container must have an explicit height */
+.leaflet-container {
+  background: #1a1a16;
+}
+
+/* Ensure Leaflet overlays render above Tailwind resets */
+.leaflet-pane,
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 400;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #1a1a16; }
+::-webkit-scrollbar-thumb { background: #424232; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #5a5a3f; }
+
+/* Risk colour classes used by the map legend and cells */
+.risk-safe      { background-color: #22c55e; }
+.risk-caution   { background-color: #f59e0b; }
+.risk-unsafe    { background-color: #ef4444; }
+.risk-uncertain { background-color: #6366f1; }

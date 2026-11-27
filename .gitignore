@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# Node
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Data / uploads (not committed)
+backend/data/
+*.joblib
+*.pt
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.DS_Store
