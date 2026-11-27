@@ -6,4 +6,5 @@ node_modules
 frontend/dist
 runs
 models/*.pt
+!models/moonsafe-yolov8n-lunar-10pct-5ep.pt
 !.env.example
