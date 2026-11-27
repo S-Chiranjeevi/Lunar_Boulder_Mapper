@@ -25,7 +25,8 @@
 .ms-panel {
   background-color: var(--ms-bg-surface);
   border: 1px solid var(--ms-border-subtle);
-  border-radius: 0.75rem;
+  border-radius: 0.875rem;
+  box-shadow: 0 10px 30px -18px rgba(0, 0, 0, 0.75);
 }
 
 .ms-panel-elevated {
@@ -60,19 +61,22 @@
   color: #f8fafc;
   font-weight: 600;
   font-size: 0.875rem;
-  padding: 0.55rem 1rem;
-  border-radius: 0.5rem;
-  border: 1px solid rgba(56, 189, 248, 0.4);
+  padding: 0.625rem 1rem;
+  border-radius: 0.625rem;
+  border: 1px solid rgba(56, 189, 248, 0.45);
   cursor: pointer;
-  transition: background-color 150ms ease, opacity 150ms ease;
+  transition: background-color 150ms ease, border-color 150ms ease, transform 100ms ease;
 }
 
 .ms-btn-primary:hover:not(:disabled) {
   background-color: #0369a1;
+  border-color: rgba(56, 189, 248, 0.75);
 }
 
 .ms-btn-primary:disabled {
-  opacity: 0.5;
+  background-color: #1e293b;
+  color: #94a3b8;
+  border-color: rgba(148, 163, 184, 0.25);
   cursor: not-allowed;
 }
 
@@ -86,10 +90,10 @@
   font-weight: 500;
   font-size: 0.875rem;
   padding: 0.5rem 0.875rem;
-  border-radius: 0.5rem;
+  border-radius: 0.625rem;
   border: 1px solid var(--ms-border-strong);
   cursor: pointer;
-  transition: background-color 150ms ease, border-color 150ms ease, opacity 150ms ease;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
 }
 
 .ms-btn-secondary:hover:not(:disabled) {
@@ -98,6 +102,6 @@
 }
 
 .ms-btn-secondary:disabled {
-  opacity: 0.5;
+  opacity: 0.55;
   cursor: not-allowed;
 }

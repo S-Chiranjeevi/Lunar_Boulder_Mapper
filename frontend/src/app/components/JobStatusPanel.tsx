@@ -40,11 +40,10 @@ export function JobStatusPanel({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 id="job-status-heading" className="text-base font-semibold text-slate-100">
-            3. Processing Status &amp; Handoff
+            3. Processing Status &amp; Hazard Map Handoff
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            Tracks asynchronous detection and RiskGrid preparation via{' '}
-            <code className="text-slate-300">GET /api/v1/jobs/{'{job_id}'}</code>.
+            Tracks background boulder detection, pixel-to-metre sizing, and RiskGrid generation.
           </p>
         </div>
 
@@ -67,18 +66,17 @@ export function JobStatusPanel({
 
       {/* Empty pre-job state */}
       {!job && !pollingError && (
-        <div className="ms-panel-elevated p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="ms-panel-elevated p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
             <ShieldAlert className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-medium text-slate-200">
                 No screening job started in this session
               </p>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Upload or select an LRO NAC image above and click{' '}
-                <strong>Run Boulder Screening</strong>. If YOLO weights are not configured on the
-                server, the job will report that honest unconfigured state without fabricating
-                detections.
+              <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
+                Select an uploaded image and click <strong>Run Boulder Screening</strong>. If YOLO
+                model weights are not configured on the backend, MoonSafe reports that state clearly
+                without fabricating detections.
               </p>
             </div>
           </div>
@@ -88,7 +86,7 @@ export function JobStatusPanel({
             onClick={onOpenAnalysis}
             className="ms-btn-secondary text-xs shrink-0"
           >
-            <span>Inspect Analysis View</span>
+            <span>Open 2D Hazard Map</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -123,15 +121,15 @@ export function JobStatusPanel({
               <div className="font-mono text-slate-100 truncate mt-0.5">{job.image_id}</div>
             </div>
             <div>
-              <div className="text-slate-400">Threshold Profile</div>
+              <div className="text-slate-400">Profile</div>
               <div className="font-mono text-slate-100 capitalize mt-0.5">
                 {job.threshold_profile ?? 'custom'}
               </div>
             </div>
             <div>
-              <div className="text-slate-400">Model Status</div>
+              <div className="text-slate-400">Pipeline Status</div>
               <div className="font-mono text-slate-100 truncate mt-0.5">
-                {job.model_status ?? (isPolling ? 'checking…' : 'planned / unverified')}
+                {job.model_status ?? (isPolling ? 'polling…' : job.status)}
               </div>
             </div>
           </div>
@@ -147,7 +145,11 @@ export function JobStatusPanel({
               role="alert"
               className="text-xs text-red-200 bg-red-950/60 border border-red-500/40 rounded-lg p-3"
             >
-              <strong>Job Error:</strong> {job.error}
+              <strong>Job Error:</strong>{' '}
+              {typeof job.error === 'string'
+                ? job.error
+                : ((job.error as unknown as { message?: string } | null)?.message ??
+                  'Screening job failed.')}
             </div>
           )}
 
@@ -155,11 +157,11 @@ export function JobStatusPanel({
             <span className="text-[11px] font-mono text-slate-400">
               {job.model_version
                 ? `model_version: ${job.model_version}`
-                : 'Awaiting model_version metadata'}
+                : 'Model metadata will appear once inference completes'}
             </span>
 
             <button type="button" onClick={onOpenAnalysis} className="ms-btn-primary text-xs">
-              <span>Open Analysis View</span>
+              <span>Open 2D Hazard Map</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
