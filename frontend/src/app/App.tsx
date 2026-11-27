@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ApiError,
+  getApiBaseUrl,
   getJobResults,
   getJobStatus,
   listImages,
+  setApiBaseUrl,
   startProcessingJob,
 } from './api/client';
 import { AnalysisView } from './components/AnalysisView';
@@ -11,12 +13,15 @@ import { ImageIngestPanel } from './components/ImageIngestPanel';
 import { ImageLibraryPanel } from './components/ImageLibraryPanel';
 import { JobStatusPanel } from './components/JobStatusPanel';
 import { ShellHeader, type ShellRoute } from './components/ShellHeader';
-import type {
-  ImageMetadata,
-  ImageUploadResponse,
-  JobResultsResponse,
-  JobStatusResponse,
-  ThresholdProfile,
+import {
+  ILLUSTRATIVE_PROFILES,
+  type ImageMetadata,
+  type ImageUploadResponse,
+  type JobResultsResponse,
+  type JobStatusResponse,
+  type RiskGrid,
+  type ThresholdConfig,
+  type ThresholdProfile,
 } from './types/contracts';
 
 function readHashRoute(): ShellRoute {
@@ -26,12 +31,21 @@ function readHashRoute(): ShellRoute {
 export function App() {
   const [route, setRoute] = useState<ShellRoute>(() => readHashRoute());
 
+  const [apiBaseUrl, setApiBaseUrlState] = useState<string>(() => getApiBaseUrl());
+  const [apiConnected, setApiConnected] = useState<boolean | null>(null);
+
   const [images, setImages] = useState<ImageMetadata[]>([]);
   const [imagesLoading, setImagesLoading] = useState(true);
   const [imagesError, setImagesError] = useState<string | null>(null);
+  const [imagesErrorStatus, setImagesErrorStatus] = useState<number | null>(null);
+  const [imagesErrorCode, setImagesErrorCode] = useState<string | undefined>(undefined);
 
+  const [localPreviews, setLocalPreviews] = useState<Record<string, string>>({});
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [selectedProfile, setSelectedProfile] = useState<ThresholdProfile>('lander');
+  const [customThresholds, setCustomThresholds] = useState<ThresholdConfig>(
+    () => ILLUSTRATIVE_PROFILES.custom.defaults,
+  );
 
   const [isStartingJob, setIsStartingJob] = useState(false);
   const [jobStartError, setJobStartError] = useState<string | null>(null);
@@ -60,8 +74,11 @@ export function App() {
   const refreshImages = useCallback(async () => {
     setImagesLoading(true);
     setImagesError(null);
+    setImagesErrorStatus(null);
+    setImagesErrorCode(undefined);
     try {
       const loaded = await listImages();
+      setApiConnected(true);
       setImages(loaded);
       setSelectedImageId((prev) => {
         if (prev && loaded.some((item) => item.image_id === prev)) {
@@ -70,11 +87,15 @@ export function App() {
         return loaded[0]?.image_id ?? null;
       });
     } catch (err) {
-      setImagesError(
-        err instanceof ApiError
-          ? err.message
-          : 'Failed to load images from the MoonSafe backend.',
-      );
+      setApiConnected(false);
+      if (err instanceof ApiError) {
+        setImagesError(err.message);
+        setImagesErrorStatus(err.status);
+        setImagesErrorCode(err.code);
+      } else {
+        setImagesError('Failed to load images from the MoonSafe backend.');
+        setImagesErrorStatus(0);
+      }
     } finally {
       setImagesLoading(false);
     }
@@ -83,6 +104,12 @@ export function App() {
   useEffect(() => {
     void refreshImages();
   }, [refreshImages]);
+
+  function handleSaveApiBaseUrl(url: string) {
+    const updated = setApiBaseUrl(url);
+    setApiBaseUrlState(updated);
+    void refreshImages();
+  }
 
   const fetchResults = useCallback(async (jobId: string) => {
     setResultsLoading(true);
@@ -157,6 +184,9 @@ export function App() {
   }, [activeJob?.job_id, activeJob?.status, pollJobOnce]);
 
   function handleUploaded(response: ImageUploadResponse) {
+    setApiConnected(true);
+    setImagesError(null);
+    setImagesErrorStatus(null);
     setImages((prev) => {
       const filtered = prev.filter((item) => item.image_id !== response.metadata.image_id);
       return [response.metadata, ...filtered];
@@ -166,6 +196,20 @@ export function App() {
     setResults(null);
     setResultsError(null);
     setPollingError(null);
+  }
+
+  function handleLocalPreview(metadata: ImageMetadata, previewUrl: string) {
+    setLocalPreviews((prev) => ({ ...prev, [metadata.image_id]: previewUrl }));
+    setImages((prev) => {
+      const filtered = prev.filter((item) => item.image_id !== metadata.image_id);
+      return [metadata, ...filtered];
+    });
+    setSelectedImageId(metadata.image_id);
+    setActiveJob(null);
+    setResults(null);
+    setResultsError(null);
+    setPollingError(null);
+    navigate('analysis');
   }
 
   async function handleStartJob() {
@@ -180,6 +224,7 @@ export function App() {
       const created = await startProcessingJob({
         image_id: selectedImageId,
         threshold_profile: selectedProfile,
+        thresholds: selectedProfile === 'custom' ? customThresholds : undefined,
       });
       setActiveJob({
         job_id: created.job_id,
@@ -197,7 +242,12 @@ export function App() {
     }
   }
 
+  function handleRiskGridUpdated(nextGrid: RiskGrid) {
+    setResults((prev) => (prev ? { ...prev, risk_grid: nextGrid } : prev));
+  }
+
   const selectedImage = images.find((img) => img.image_id === selectedImageId) ?? null;
+  const activeLocalPreviewUrl = selectedImage ? (localPreviews[selectedImage.image_id] ?? null) : null;
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0b0e14] text-slate-100">
@@ -206,19 +256,31 @@ export function App() {
         onNavigate={navigate}
         selectedImage={selectedImage}
         hasActiveJob={Boolean(activeJob)}
+        hasCompletedResults={Boolean(results)}
+        apiConnected={apiConnected}
+        apiBaseUrl={apiBaseUrl}
+        onSaveApiBaseUrl={handleSaveApiBaseUrl}
       />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-5">
         {route === 'workspace' ? (
           <div className="flex flex-col gap-5">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
-              <ImageIngestPanel onUploaded={handleUploaded} />
+              <ImageIngestPanel
+                onUploaded={handleUploaded}
+                onLocalPreview={handleLocalPreview}
+                apiAvailable={apiConnected === true}
+              />
               <ImageLibraryPanel
                 images={images}
                 isLoading={imagesLoading}
                 error={imagesError}
+                errorStatus={imagesErrorStatus}
+                errorCode={imagesErrorCode}
                 selectedImageId={selectedImageId}
                 selectedProfile={selectedProfile}
+                customThresholds={customThresholds}
+                onChangeCustomThresholds={setCustomThresholds}
                 isStartingJob={isStartingJob}
                 jobStartError={jobStartError}
                 onRefresh={() => void refreshImages()}
@@ -244,6 +306,7 @@ export function App() {
         ) : (
           <AnalysisView
             selectedImage={selectedImage}
+            localPreviewUrl={activeLocalPreviewUrl}
             job={activeJob}
             results={results}
             isLoadingResults={resultsLoading}
@@ -252,6 +315,7 @@ export function App() {
             onRetryResults={() => {
               if (activeJob) void fetchResults(activeJob.job_id);
             }}
+            onRiskGridUpdated={handleRiskGridUpdated}
           />
         )}
       </main>
