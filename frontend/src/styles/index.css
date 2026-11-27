@@ -1,0 +1,103 @@
+@import "leaflet/dist/leaflet.css";
+@import "./tokens.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body {
+    background-color: var(--ms-bg-canvas);
+    color: var(--ms-text-primary);
+    font-family: var(--ms-font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  code,
+  pre,
+  .font-mono {
+    font-family: var(--ms-font-mono);
+  }
+}
+
+.ms-panel {
+  background-color: var(--ms-bg-surface);
+  border: 1px solid var(--ms-border-subtle);
+  border-radius: 0.75rem;
+}
+
+.ms-panel-elevated {
+  background-color: var(--ms-bg-elevated);
+  border: 1px solid var(--ms-border-subtle);
+  border-radius: 0.75rem;
+}
+
+.ms-input {
+  background-color: var(--ms-bg-canvas);
+  border: 1px solid var(--ms-border-strong);
+  border-radius: 0.5rem;
+  color: var(--ms-text-primary);
+  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+  width: 100%;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.ms-input:focus {
+  outline: none;
+  border-color: var(--ms-accent);
+  box-shadow: 0 0 0 2px var(--ms-accent-soft);
+}
+
+.ms-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: #0284c7;
+  color: #f8fafc;
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 0.55rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  cursor: pointer;
+  transition: background-color 150ms ease, opacity 150ms ease;
+}
+
+.ms-btn-primary:hover:not(:disabled) {
+  background-color: #0369a1;
+}
+
+.ms-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ms-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: var(--ms-bg-elevated);
+  color: var(--ms-text-primary);
+  font-weight: 500;
+  font-size: 0.875rem;
+  padding: 0.5rem 0.875rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--ms-border-strong);
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, opacity 150ms ease;
+}
+
+.ms-btn-secondary:hover:not(:disabled) {
+  background-color: var(--ms-bg-subtle);
+  border-color: var(--ms-accent);
+}
+
+.ms-btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
