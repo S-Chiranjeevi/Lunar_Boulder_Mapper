@@ -88,6 +88,13 @@ def _render_preview_png(image_path: Path, max_dim: int) -> tuple[bytes, int, int
         raise UnsupportedImageryError(f"Could not render preview for {image_path.name}: {exc}") from exc
 
 
+def _configured_cors_origins() -> list[str]:
+    """Read comma-separated browser origins for hosted UI deployments."""
+    raw = os.environ.get("MOONSAFE_CORS_ORIGINS", "")
+    origins = list(dict.fromkeys(origin.strip().rstrip("/") for origin in raw.split(",") if origin.strip()))
+    return origins or ["*"]
+
+
 def create_app(
     *,
     storage: StorageBackend | None = None,
@@ -139,7 +146,7 @@ def create_app(
 
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=list(cors_origins) if cors_origins is not None else ["*"],
+        allow_origins=list(cors_origins) if cors_origins is not None else _configured_cors_origins(),
         allow_credentials=False,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -156,6 +163,7 @@ def create_app(
     def health() -> dict[str, Any]:
         return {"status": "ok", "screening_only": True}
 
+    @app.post("/api/v1/images", status_code=201, include_in_schema=False)
     @app.post("/api/images", status_code=201)
     async def upload_image(
         file: UploadFile = File(...),
@@ -220,6 +228,7 @@ def create_app(
         )
         return format_image_response(stored.metadata, created_at=stored.created_at)
 
+    @app.get("/api/v1/images", include_in_schema=False)
     @app.get("/api/images")
     def list_images() -> dict[str, Any]:
         images = [
@@ -228,11 +237,13 @@ def create_app(
         ]
         return {"images": images, "count": len(images)}
 
+    @app.get("/api/v1/images/{image_id}", include_in_schema=False)
     @app.get("/api/images/{image_id}")
     def get_image(image_id: str) -> dict[str, Any]:
         stored = store.get_image(image_id)
         return format_image_response(stored.metadata, created_at=stored.created_at)
 
+    @app.get("/api/v1/images/{image_id}/preview", include_in_schema=False)
     @app.get("/api/images/{image_id}/preview")
     def preview_image(
         image_id: str,
@@ -249,20 +260,24 @@ def create_app(
             },
         )
 
+    @app.post("/api/v1/jobs", status_code=202, include_in_schema=False)
     @app.post("/api/jobs", status_code=202)
     def create_job(request: CreateJobRequest) -> dict[str, Any]:
         job = runner.submit_job(request)
         return _job_status_payload(job)
 
+    @app.get("/api/v1/jobs", include_in_schema=False)
     @app.get("/api/jobs")
     def list_jobs() -> dict[str, Any]:
         jobs = [_job_status_payload(job) for job in store.list_jobs()]
         return {"jobs": jobs, "count": len(jobs)}
 
+    @app.get("/api/v1/jobs/{job_id}", include_in_schema=False)
     @app.get("/api/jobs/{job_id}")
     def get_job_status(job_id: str) -> dict[str, Any]:
         return _job_status_payload(store.get_job(job_id))
 
+    @app.get("/api/v1/jobs/{job_id}/results", include_in_schema=False)
     @app.get("/api/jobs/{job_id}/results")
     def get_job_results(job_id: str) -> dict[str, Any]:
         job = store.get_job(job_id)
@@ -299,6 +314,7 @@ def create_app(
             "georeferencing_summary": georef_summary,
         }
 
+    @app.patch("/api/v1/jobs/{job_id}/thresholds", include_in_schema=False)
     @app.patch("/api/jobs/{job_id}/thresholds")
     def update_thresholds(job_id: str, request: ThresholdUpdateRequest) -> dict[str, Any]:
         updated_job = runner.recalculate_thresholds(job_id, request)

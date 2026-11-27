@@ -71,6 +71,8 @@ def train_boulder_detector(config: TrainConfig) -> dict[str, Any]:
         "name": config.run_name,
         "seed": config.seed,
         "workers": config.workers,
+        "fraction": config.fraction,
+        "close_mosaic": min(10, max(0, config.epochs - 1)),
     }
     if config.device is not None:
         train_kwargs["device"] = config.device

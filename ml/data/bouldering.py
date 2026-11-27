@@ -28,9 +28,10 @@ BOULDERING_CITATION = (
 )
 BOULDERING_LICENSE = "CC-BY-4.0"
 
-# LRO LROC NAC product IDs begin with M followed by 8-11 digits and optional L/R suffix
-# (e.g. M121118602, M1234567890L).
-_LRO_NAC_RE = re.compile(r"^(M\d{8,11}[LR]?)(?:_|$)", re.IGNORECASE)
+# LROC NAC product IDs begin with M + 8-11 MET digits. PDS products may append
+# camera side (L/R) and product type (E/C), e.g. M1104988970RE. Group paired
+# camera products by the shared MET observation ID to prevent tile leakage.
+_LRO_NAC_RE = re.compile(r"^(M\d{8,11})(?:[LR][EC]?)?(?:_|$)", re.IGNORECASE)
 # Mars HiRISE / CTX prefixes commonly present in mixed planetary datasets.
 _MARS_OBS_RE = re.compile(r"^((?:ESP|PSP|TRA)_\d+_\d+|B\d{2}_\d+)", re.IGNORECASE)
 

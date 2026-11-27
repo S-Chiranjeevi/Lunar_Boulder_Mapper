@@ -86,6 +86,7 @@ class TrainConfig:
     project_dir: str | Path = "runs/detect"
     run_name: str = "moonsafe_boulder"
     learning_rate: float | None = None
+    fraction: float = 1.0
     seed: int = 42
     workers: int = 4
 
@@ -96,3 +97,5 @@ class TrainConfig:
             raise ValueError("epochs must be > 0")
         if self.batch_size <= 0:
             raise ValueError("batch_size must be > 0")
+        if not 0.0 < self.fraction <= 1.0:
+            raise ValueError("fraction must be in (0.0, 1.0]")

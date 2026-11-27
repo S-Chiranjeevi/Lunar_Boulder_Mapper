@@ -8,6 +8,7 @@ services:
     environment:
       MOONSAFE_DATA_DIR: /data
       MOONSAFE_WEIGHTS_PATH: ${MOONSAFE_WEIGHTS_PATH:-}
+      MOONSAFE_CORS_ORIGINS: ${MOONSAFE_CORS_ORIGINS:-}
       PYTHONPATH: /app/backend:/app
     volumes:
       - ${MOONSAFE_HOST_DATA_DIR:-./.moonsafe_data}:/data

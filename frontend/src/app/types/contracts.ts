@@ -135,10 +135,10 @@ export const ILLUSTRATIVE_PROFILES: Record<ThresholdProfile, ThresholdProfileSum
   lander: {
     profile: 'lander',
     label: 'Lander (Illustrative)',
-    description: 'Coarser 25 m screening cells with illustrative boulder-size caution/unsafe cutoffs.',
+    description: 'Coarser 10 m screening cells with illustrative boulder-size caution/unsafe cutoffs.',
     illustrativeNote: 'Unvalidated illustrative defaults — not flight landing certification.',
     defaults: {
-      cell_size_m: 25.0,
+      cell_size_m: 10.0,
       caution_boulder_size_m: 0.5,
       unsafe_boulder_size_m: 1.0,
       caution_boulder_count: 3,
@@ -153,10 +153,10 @@ export const ILLUSTRATIVE_PROFILES: Record<ThresholdProfile, ThresholdProfileSum
   rover: {
     profile: 'rover',
     label: 'Rover (Illustrative)',
-    description: 'Finer 10 m screening cells tuned for illustrative surface-mobility hazard screening.',
+    description: 'Finer 5 m screening cells for illustrative surface-mobility hazard screening.',
     illustrativeNote: 'Unvalidated illustrative defaults — not traverse clearance certification.',
     defaults: {
-      cell_size_m: 10.0,
+      cell_size_m: 5.0,
       caution_boulder_size_m: 0.3,
       unsafe_boulder_size_m: 0.6,
       caution_boulder_count: 2,

@@ -7,6 +7,9 @@ and pluggable detector and risk-grid modules.
 ## Routes
 
 - `GET /health` — service health check (`screening_only: true`).
+- Both `/api/...` and `/api/v1/...` route prefixes are served. `/api/v1` is
+  the frontend contract; `/api` remains available for existing clients and
+  the Docker Nginx proxy.
 - `POST /api/images` — multipart upload (`file`, optional `manifest` JSON file or
   `metadata_json` form field, optional `overwrite`). Returns `ImageMetadata`
   with explicit units and preview URL.
@@ -29,6 +32,9 @@ and pluggable detector and risk-grid modules.
 - **Replaceable storage**: Routes and `JobRunner` depend only on the
   `StorageBackend` protocol; `LocalFileJobStore` persists JSON/image files under
   `MOONSAFE_DATA_DIR` (or the system temp directory by default).
+- **CORS**: Set `MOONSAFE_CORS_ORIGINS` to a comma-separated list of exact
+  browser origins (for example `https://your-site.vercel.app`). If unset, the
+  app allows any origin for local development. Do not include URL paths.
 - **Illustrative thresholds**: Default `lander` and `rover` threshold presets
   are explicitly marked `validated: false` and `illustrative_default: true`.
 - **Honest error handling**: Clear structured JSON errors are returned for

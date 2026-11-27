@@ -80,7 +80,8 @@ export function ApiConfigModal({ isOpen, onClose, onConnected }: ApiConfigModalP
                 Connect FastAPI Backend
               </h2>
               <p className="text-xs text-slate-400">
-                Paste your deployed FastAPI base URL (no trailing slash) to connect this Vercel UI.
+                This Vercel deployment serves the website. Deploy the FastAPI service separately,
+                then paste its base URL here (no trailing slash).
               </p>
             </div>
           </div>
@@ -109,6 +110,10 @@ export function ApiConfigModal({ isOpen, onClose, onConnected }: ApiConfigModalP
             <span className="text-[11px] text-slate-400">
               Build-time default (<code>VITE_API_BASE_URL</code>):{' '}
               <code className="text-slate-300">{getEnvApiOrigin() || 'not set (same-origin)'}</code>
+            </span>
+            <span className="text-[11px] text-amber-200/90">
+              The Vercel website host does not provide uploads or processing by itself. Use the
+              separately hosted FastAPI origin below.
             </span>
           </label>
 

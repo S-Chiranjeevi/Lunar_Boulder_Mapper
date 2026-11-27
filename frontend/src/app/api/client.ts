@@ -131,6 +131,14 @@ async function requestJsonWithFallback<T>(path: string, init?: RequestInit): Pro
     }
 
     const contentType = response.headers.get('content-type') ?? '';
+    if (response.ok && !contentType.toLowerCase().includes('application/json')) {
+      lastError = new ApiError(
+        `MoonSafe API route ${prefix}${path} returned ${contentType || 'a non-JSON response'}. The configured host may serve the website without a FastAPI backend.`,
+        502,
+      );
+      if (i < order.length - 1) continue;
+      throw lastError;
+    }
     const body = contentType.includes('application/json')
       ? await response.json().catch(() => null)
       : null;
@@ -142,6 +150,12 @@ async function requestJsonWithFallback<T>(path: string, init?: RequestInit): Pro
 
     if (!response.ok) {
       throw new ApiError(extractErrorMessage(body, response), response.status);
+    }
+
+    if (body === null) {
+      lastError = new ApiError(`MoonSafe API route ${prefix}${path} returned invalid JSON.`, 502);
+      if (i < order.length - 1) continue;
+      throw lastError;
     }
 
     detectedApiPrefix = prefix;
@@ -162,7 +176,15 @@ export async function testApiConnection(signal?: AbortSignal): Promise<ApiHealth
     try {
       const res = await fetch(candidate.url, { method: 'GET', signal });
       const contentType = res.headers.get('content-type') ?? '';
-      if (res.ok && contentType.includes('application/json')) {
+      if (res.ok && contentType.toLowerCase().includes('application/json')) {
+        const payload: unknown = await res.json().catch(() => null);
+        const isImageList =
+          Array.isArray(payload) ||
+          (payload !== null &&
+            typeof payload === 'object' &&
+            'images' in payload &&
+            Array.isArray((payload as { images?: unknown }).images));
+        if (!isImageList) continue;
         detectedApiPrefix = candidate.prefix;
         return {
           ok: true,
@@ -185,7 +207,9 @@ export async function testApiConnection(signal?: AbortSignal): Promise<ApiHealth
     ok: false,
     origin: origin || window.location.origin,
     prefix: '/api/v1',
-    message: 'API endpoints (/api/v1/images or /api/images) returned 404 on this host.',
+    message: origin
+      ? 'No MoonSafe FastAPI image endpoint was found at this origin.'
+      : 'This Vercel deployment serves the website only. Deploy the FastAPI backend separately, then enter its URL here or set VITE_API_BASE_URL.',
   };
 }
 
@@ -224,6 +248,9 @@ export async function listImages(signal?: AbortSignal): Promise<ImageMetadata[]>
   );
   if (Array.isArray(payload)) {
     return payload.map((item) => normalizeImageMetadata(item));
+  }
+  if (!payload || typeof payload !== 'object' || !Array.isArray(payload.images)) {
+    throw new ApiError('MoonSafe API returned an invalid image library response.', 502);
   }
   const list = Array.isArray(payload?.images) ? payload.images : [];
   return list.map((item) => normalizeImageMetadata(item as unknown as Record<string, unknown>));
