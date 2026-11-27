@@ -144,6 +144,7 @@ export function AnalysisMapViewer({
               detections={detections}
               riskGrid={activeGrid}
               layers={layers}
+              onChangeLayers={setLayers}
               selected={selected}
               onSelect={setSelected}
             />
