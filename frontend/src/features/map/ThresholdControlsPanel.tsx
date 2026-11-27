@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { RefreshCw, Sliders } from 'lucide-react';
+import { CheckCircle2, RefreshCw, Sliders } from 'lucide-react';
 import {
   ILLUSTRATIVE_PROFILES,
   type ThresholdProfile,
@@ -11,6 +11,7 @@ interface ThresholdControlsPanelProps {
   disabled: boolean;
   isUpdating: boolean;
   updateError: string | null;
+  updateSuccess?: boolean;
   onApply: (payload: ThresholdRecalcPayload) => void;
 }
 
@@ -19,10 +20,13 @@ export function ThresholdControlsPanel({
   disabled,
   isUpdating,
   updateError,
+  updateSuccess = false,
   onApply,
 }: ThresholdControlsPanelProps) {
   const [profile, setProfile] = useState<ThresholdProfile>(activeProfile);
-  const [cellSizeM, setCellSizeM] = useState<number>(ILLUSTRATIVE_PROFILES[activeProfile].defaults.cell_size_m);
+  const [cellSizeM, setCellSizeM] = useState<number>(
+    ILLUSTRATIVE_PROFILES[activeProfile].defaults.cell_size_m,
+  );
   const [cautionSizeM, setCautionSizeM] = useState<number>(
     ILLUSTRATIVE_PROFILES[activeProfile].defaults.caution_boulder_size_m,
   );
@@ -56,14 +60,19 @@ export function ThresholdControlsPanel({
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const safeUnsafeSize = Math.max(cautionSizeM, unsafeSizeM);
+    const safeUnsafeCount = Math.max(cautionCount, unsafeCount);
+    setUnsafeSizeM(safeUnsafeSize);
+    setUnsafeCount(safeUnsafeCount);
+
     onApply({
       threshold_profile: profile,
       thresholds: {
         cell_size_m: cellSizeM,
         caution_boulder_size_m: cautionSizeM,
-        unsafe_boulder_size_m: unsafeSizeM,
+        unsafe_boulder_size_m: safeUnsafeSize,
         caution_boulder_count: cautionCount,
-        unsafe_boulder_count: unsafeCount,
+        unsafe_boulder_count: safeUnsafeCount,
         min_valid_coverage: minCoverage,
       },
     });
@@ -87,9 +96,9 @@ export function ThresholdControlsPanel({
             key={p}
             type="button"
             onClick={() => handleProfileSelect(p)}
-            className={`px-2 py-1.5 rounded border text-[11px] font-medium capitalize transition ${
+            className={`px-2 py-1.5 rounded-lg border text-[11px] font-medium capitalize transition cursor-pointer ${
               profile === p
-                ? 'bg-sky-950/70 border-sky-400/60 text-sky-200'
+                ? 'bg-sky-950/70 border-sky-400/70 text-sky-200'
                 : 'bg-slate-900/70 border-slate-700 text-slate-300 hover:border-slate-500'
             }`}
           >
@@ -187,8 +196,15 @@ export function ThresholdControlsPanel({
       </div>
 
       {updateError && (
-        <p role="alert" className="text-[11px] text-red-200 bg-red-950/50 border border-red-500/40 rounded p-2">
+        <p role="alert" className="text-[11px] text-red-200 bg-red-950/50 border border-red-500/40 rounded-lg p-2">
           {updateError}
+        </p>
+      )}
+
+      {updateSuccess && !updateError && (
+        <p className="text-[11px] text-emerald-200 bg-emerald-950/40 border border-emerald-500/35 rounded-lg p-2 flex items-center gap-1.5">
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+          <span>RiskGrid recalculated without rerunning YOLO.</span>
         </p>
       )}
 
@@ -202,7 +218,7 @@ export function ThresholdControlsPanel({
       </button>
 
       <p className="text-[11px] text-slate-400 leading-relaxed">
-        Recalculates RiskGrid from stored detections without rerunning YOLO inference. Defaults are
+        Recalculates RiskGrid from stored detections without rerunning detection. Values are
         unvalidated illustrative screening parameters only.
       </p>
     </form>

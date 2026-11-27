@@ -1,18 +1,18 @@
 :root {
-  --ms-bg-canvas: #0b0e14;
-  --ms-bg-surface: #121722;
-  --ms-bg-elevated: #181f2e;
-  --ms-bg-subtle: #1f293d;
+  --ms-bg-canvas: #070a10;
+  --ms-bg-surface: #0f1521;
+  --ms-bg-elevated: #161e2e;
+  --ms-bg-subtle: #1e293d;
 
-  --ms-border-subtle: rgba(148, 163, 184, 0.16);
-  --ms-border-strong: rgba(148, 163, 184, 0.32);
+  --ms-border-subtle: rgba(148, 163, 184, 0.14);
+  --ms-border-strong: rgba(148, 163, 184, 0.28);
 
-  --ms-text-primary: #f1f5f9;
+  --ms-text-primary: #f8fafc;
   --ms-text-secondary: #94a3b8;
   --ms-text-muted: #64748b;
 
   --ms-accent: #38bdf8;
-  --ms-accent-soft: rgba(56, 189, 248, 0.14);
+  --ms-accent-soft: rgba(56, 189, 248, 0.16);
 
   --ms-safe: #10b981;
   --ms-caution: #f59e0b;

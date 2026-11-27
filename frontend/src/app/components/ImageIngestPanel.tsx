@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import { FileJson, ImagePlus, Info, Loader2, Upload } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { ChevronDown, ChevronUp, FileImage, FileJson, ImagePlus, Info, Loader2, Upload } from 'lucide-react';
 import { ApiError, uploadImage } from '../api/client';
 import type { CoverageState, ImageUploadResponse } from '../types/contracts';
 
@@ -14,6 +14,7 @@ export function ImageIngestPanel({ onUploaded }: ImageIngestPanelProps) {
   const manifestInputRef = useRef<HTMLInputElement | null>(null);
 
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [previewObjectUrl, setPreviewObjectUrl] = useState<string | null>(null);
   const [manifestFile, setManifestFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -26,6 +27,21 @@ export function ImageIngestPanel({ onUploaded }: ImageIngestPanelProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successNotice, setSuccessNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!imageFile) {
+      setPreviewObjectUrl(null);
+      return;
+    }
+    const ext = imageFile.name.toLowerCase().split('.').pop() ?? '';
+    if (!['png', 'jpg', 'jpeg'].includes(ext)) {
+      setPreviewObjectUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(imageFile);
+    setPreviewObjectUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [imageFile]);
 
   function validateSelectedImage(file: File | null): file is File {
     if (!file) return false;
@@ -96,20 +112,22 @@ export function ImageIngestPanel({ onUploaded }: ImageIngestPanelProps) {
     }
   }
 
+  const isTiff = imageFile ? /\.tiff?$/i.test(imageFile.name) : false;
+
   return (
     <section className="ms-panel p-5 flex flex-col gap-4" aria-labelledby="ingest-heading">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 id="ingest-heading" className="text-base font-semibold text-slate-100">
-            1. Upload LRO LROC NAC Image
+          <div className="text-[11px] font-mono uppercase tracking-wider text-sky-400">
+            Step 1 · Imagery Ingest
+          </div>
+          <h2 id="ingest-heading" className="text-base font-semibold text-slate-50 mt-0.5">
+            Upload LRO LROC NAC Image
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            Supports PNG, JPEG, and TIFF rasters with an optional sidecar JSON manifest.
+            Supports PNG, JPEG, and 8/16-bit scientific TIFF rasters with optional scale metadata.
           </p>
         </div>
-        <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
-          POST /api/v1/images
-        </span>
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -126,10 +144,12 @@ export function ImageIngestPanel({ onUploaded }: ImageIngestPanelProps) {
             const dropped = e.dataTransfer.files?.[0] ?? null;
             handleFileSelection(dropped);
           }}
-          className={`border-2 border-dashed rounded-xl p-5 text-center transition-colors ${
+          className={`border-2 border-dashed rounded-2xl p-5 text-center transition-all ${
             isDragging
-              ? 'border-sky-400 bg-sky-950/30'
-              : 'border-slate-700/80 bg-[#0e131d] hover:border-slate-500'
+              ? 'border-sky-400 bg-sky-950/35 scale-[1.01]'
+              : imageFile
+                ? 'border-sky-500/45 bg-[#0c121e]'
+                : 'border-slate-700/80 bg-[#0b101a]/90 hover:border-slate-500'
           }`}
         >
           <input
@@ -141,23 +161,51 @@ export function ImageIngestPanel({ onUploaded }: ImageIngestPanelProps) {
             onChange={(e) => handleFileSelection(e.target.files?.[0] ?? null)}
           />
 
-          <ImagePlus className="w-8 h-8 mx-auto text-sky-400/90 mb-2" />
-          <p className="text-sm font-medium text-slate-200">
-            {imageFile ? imageFile.name : 'Drop an LRO NAC raster here or browse'}
-          </p>
-          <p className="text-xs text-slate-400 mt-1">
-            {imageFile
-              ? `${(imageFile.size / (1024 * 1024)).toFixed(2)} MB ready for ingestion`
-              : 'PNG, JPEG, or TIFF. Without a verified transform, coordinates stay in image_px.'}
-          </p>
+          {previewObjectUrl ? (
+            <div className="flex flex-col items-center gap-2.5">
+              <img
+                src={previewObjectUrl}
+                alt="Selected NAC preview"
+                className="max-h-36 rounded-lg border border-slate-700/80 object-contain bg-black shadow-md"
+              />
+              <div>
+                <p className="text-sm font-medium text-slate-100">{imageFile?.name}</p>
+                <p className="text-xs text-slate-400">
+                  {imageFile ? `${(imageFile.size / (1024 * 1024)).toFixed(2)} MB` : ''} · Ready to upload
+                </p>
+              </div>
+            </div>
+          ) : isTiff && imageFile ? (
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-12 h-12 rounded-xl bg-sky-500/15 border border-sky-400/30 flex items-center justify-center text-sky-300">
+                <FileImage className="w-6 h-6" />
+              </div>
+              <p className="text-sm font-medium text-slate-100">{imageFile.name}</p>
+              <p className="text-xs text-slate-400">
+                {(imageFile.size / (1024 * 1024)).toFixed(2)} MB · Server renders contrast-stretched PNG preview on upload
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="w-12 h-12 mx-auto rounded-2xl bg-sky-500/10 border border-sky-400/25 flex items-center justify-center text-sky-400 mb-3">
+                <ImagePlus className="w-6 h-6" />
+              </div>
+              <p className="text-sm font-medium text-slate-100">
+                Drop an LRO NAC raster here, or browse
+              </p>
+              <p className="text-xs text-slate-400 mt-1">
+                PNG, JPEG, or TIFF (.tif / .tiff)
+              </p>
+            </>
+          )}
 
-          <div className="mt-3 flex items-center justify-center gap-2">
+          <div className="mt-4 flex items-center justify-center gap-2">
             <button
               type="button"
               onClick={() => imageInputRef.current?.click()}
               className="ms-btn-secondary text-xs"
             >
-              Choose Image File
+              {imageFile ? 'Change File' : 'Choose Image File'}
             </button>
             {imageFile && (
               <button
@@ -166,7 +214,7 @@ export function ImageIngestPanel({ onUploaded }: ImageIngestPanelProps) {
                   setImageFile(null);
                   if (imageInputRef.current) imageInputRef.current.value = '';
                 }}
-                className="text-xs text-slate-400 hover:text-slate-200 px-2 py-1 cursor-pointer"
+                className="text-xs text-slate-400 hover:text-slate-200 px-2.5 py-1.5 rounded-lg hover:bg-slate-800/60 cursor-pointer"
               >
                 Clear
               </button>
@@ -177,15 +225,15 @@ export function ImageIngestPanel({ onUploaded }: ImageIngestPanelProps) {
         {/* Optional manifest file */}
         <div className="ms-panel-elevated p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-start gap-2.5">
-            <FileJson className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
+            <FileJson className="w-4 h-4 text-sky-400 mt-0.5 shrink-0" />
             <div>
               <p className="text-xs font-medium text-slate-200">
                 Optional Sidecar Manifest (.json)
               </p>
               <p className="text-[11px] text-slate-400">
                 {manifestFile
-                  ? `Selected: ${manifestFile.name}`
-                  : 'Supply GSD (m/px), coverage state, or affine image_to_lunar transform.'}
+                  ? `Attached: ${manifestFile.name}`
+                  : 'Attach GSD (m/px), coverage, or affine image_to_lunar transform.'}
               </p>
             </div>
           </div>
@@ -226,11 +274,14 @@ export function ImageIngestPanel({ onUploaded }: ImageIngestPanelProps) {
           <button
             type="button"
             onClick={() => setShowMetadataFields((prev) => !prev)}
-            className="text-xs text-sky-300 hover:text-sky-200 font-medium cursor-pointer"
+            className="inline-flex items-center gap-1.5 text-xs text-sky-300 hover:text-sky-200 font-medium cursor-pointer"
           >
-            {showMetadataFields
-              ? '− Hide optional metadata overrides'
-              : '+ Provide optional GSD / coverage metadata manually'}
+            {showMetadataFields ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            <span>
+              {showMetadataFields
+                ? 'Hide manual scale & coverage overrides'
+                : 'Enter optional GSD / coverage manually'}
+            </span>
           </button>
 
           {showMetadataFields && (
@@ -289,19 +340,19 @@ export function ImageIngestPanel({ onUploaded }: ImageIngestPanelProps) {
           )}
         </div>
 
-        <div className="flex items-start gap-2 text-[11px] text-slate-400 bg-slate-900/70 border border-slate-800 rounded-lg p-2.5">
+        <div className="flex items-start gap-2 text-[11px] text-slate-400 bg-slate-900/60 border border-slate-800/80 rounded-xl p-3">
           <Info className="w-3.5 h-3.5 text-sky-400 shrink-0 mt-0.5" />
           <span>
-            No georeferencing is fabricated: images without a declared{' '}
-            <code className="text-slate-300">lunar_local_m</code> affine transform remain in{' '}
-            <code className="text-slate-300">image_px</code> coordinates with uncertain location.
+            Images without a declared <code className="text-slate-300">lunar_local_m</code> affine
+            transform stay in <code className="text-slate-300">image_px</code> coordinates with
+            lunar location marked uncertain.
           </span>
         </div>
 
         {errorMessage && (
           <div
             role="alert"
-            className="text-xs text-red-200 bg-red-950/60 border border-red-500/40 rounded-lg p-3"
+            className="text-xs text-red-200 bg-red-950/55 border border-red-500/40 rounded-xl p-3"
           >
             {errorMessage}
           </div>
@@ -310,7 +361,7 @@ export function ImageIngestPanel({ onUploaded }: ImageIngestPanelProps) {
         {successNotice && (
           <div
             role="status"
-            className="text-xs text-emerald-200 bg-emerald-950/50 border border-emerald-500/40 rounded-lg p-3"
+            className="text-xs text-emerald-200 bg-emerald-950/45 border border-emerald-500/40 rounded-xl p-3"
           >
             {successNotice}
           </div>
